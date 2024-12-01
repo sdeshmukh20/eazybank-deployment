@@ -5,4 +5,7 @@
 *.iws
 
 # Ignore all files inside the "generated" folder
-docker/service-config/mysql/generated
+docker/service-config/mysql/generated/*
+
+# Ignore all files inside the "build" folder
+docker/service-config/app/build/*
