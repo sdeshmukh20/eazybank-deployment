@@ -1,0 +1,101 @@
+version: '3.7'
+
+services:
+  mysqldb:
+    build:
+      context: .
+      dockerfile: service-config/mysql/Dockerfile
+      args:
+        EAZYBANK_ENV_NAME: ${EAZYBANK_ENV_NAME}
+    container_name: ${EAZYBANK_ENV_NAME}_mysql_db
+    #image: mysql:8.0.33
+    #image: system24-mysql:8.0.33_v1.1
+    ports:
+      - "${PORT_MYSQL}:3306"
+    environment:
+      - MYSQL_DATABASE=${MYSQL_APP_DB_NAME}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PSW}
+      - MYSQL_PORT=${PORT_MYSQL}
+    volumes:
+      - mysql-data:/var/lib/mysql  # Persistent volume for MySQL data
+    networks:
+      eazybank_nw:
+    command: --default-authentication-plugin=mysql_native_password --bind-address=0.0.0.0
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "127.0.0.1" ]
+      retries: 15
+      interval: 5s
+      timeout: 30s
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.5
+    #image: my-keycloak-image:v1.0
+    container_name: ${EAZYBANK_ENV_NAME}_keycloak
+    environment:
+      - DB_VENDOR=mysql
+      - DB_ADDR=mysql
+      - DB_DATABASE=${MYSQL_KCL_DB_NAME}
+      - DB_USER=${MYSQL_ROOT_USER}
+      - DB_PASSWORD=${MYSQL_ROOT_PSW}
+      - KC_DB=mysql
+      - KC_DB_USERNAME=${MYSQL_ROOT_USER}
+      - KC_DB_PASSWORD=${MYSQL_ROOT_PSW}
+      - KC_DB_URL_DATABASE=${MYSQL_KCL_DB_NAME}
+      - KC_DB_URL_HOST=mysqldb
+      - KC_DB_URL_PORT=3306
+      - KC_BOOTSTRAP_ADMIN_USERNAME=${KCL_ADMIN_USER}
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=${KCL_ADMIN_PSW}
+      - KC_HTTP_PORT=8181
+      - KC_HTTP_MANAGEMENT_PORT=9000
+      - KC_HEALTH_ENABLED=true
+      - KC_METRICS_ENABLED=true
+    volumes:
+      - ./service-config/keycloak/realms/eazybankdev.json:/opt/keycloak/data/import/eazybankdev.json
+      #- ./target/keycloak-ip-authenticator.jar:/opt/keycloak/providers/keycloak-ip-authenticator.jar
+    ports:
+      - "${PORT_KCL_OPS}:8181"
+      - "${PORT_KCL_MNG}:9000"
+    depends_on:
+      mysqldb:
+        condition: service_healthy  # Ensure db-init completes before Keycloak starts
+    networks:
+      eazybank_nw:
+    command: >
+      start-dev
+      --import-realm
+      --spi-theme-static-max-age=-1
+      --spi-theme-cache-themes=false
+      --spi-theme-cache-templates=false
+    healthcheck:
+      #https://gist.github.com/sarath-soman/5d9aec06953bbd0990c648605d4dba07
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000;echo -e 'GET /health/ready HTTP/1.1\r\nhost: http://localhost\r\nConnection: close\r\n\r\n' >&3;if [ $? -eq 0 ]; then echo 'Healthcheck Successful';exit 0;else echo 'Healthcheck Failed';exit 1;fi;"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  app:
+    build:
+      context: .
+      dockerfile: service-config/app/Dockerfile
+    container_name: ${EAZYBANK_ENV_NAME}_app
+    ports:
+      - "${PORT_APP}:8080"
+    depends_on:
+      mysqldb:
+        condition: service_healthy  # Wait for mysqldb to complete
+    environment:
+      - DATABASE_HOST=mysqldb
+      - DATABASE_PORT=3306
+      - DATABASE_NAME=${MYSQL_APP_DB_NAME}
+      - DATABASE_USERNAME=${MYSQL_ROOT_USER}
+      - DATABASE_PASSWORD=${MYSQL_ROOT_PSW}
+      - MY_PORT=8080
+      - KEYCLOAK_HOST=keycloak
+      - KEYCLOAK_PORT=8181
+    networks:
+      eazybank_nw:
+volumes:
+  mysql-data:
+
+networks:
+  eazybank_nw:
+    name: "${EAZYBANK_ENV_NAME}_nw"

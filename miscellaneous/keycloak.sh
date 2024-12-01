@@ -1,0 +1,1 @@
+bin/kc.sh start-dev --features=health --db mysql --db-username root --db-password rootpassword --http-port=8180 --db-url-database=keycloak26 --db-url-port=3039 --health-enabled=true --spi-theme-static-max-age=-1 --spi-theme-cache-themes=false --spi-theme-cache-templates=false
