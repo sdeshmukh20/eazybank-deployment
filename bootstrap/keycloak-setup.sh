@@ -1,7 +1,5 @@
 #!/bin/bash
 
-
-
 #configuration
 export KEYCLOAK_HOME=${KEYCLOAK_HOME:-/Users/sdeshmukh/DEV/install/keycloak-26.0.4}
 export PATH=$PATH:$KEYCLOAK_HOME/bin
