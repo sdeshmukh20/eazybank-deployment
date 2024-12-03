@@ -23,15 +23,15 @@ ENV_NAME="$1"
 
 # Variables
 DEPLOY_DIR="$(pwd)"
-DEFAULT_ENV_FILE="../env/eb_default.env"
-ENV_SPECIFIC_FILE="../env/eb_${ENV_NAME}.env"
+DEFAULT_ENV_FILE="../../env/eb_default.env"
+ENV_SPECIFIC_FILE="../../env/eb_${ENV_NAME}.env"
 
 echo "ENV_SPECIFIC_FILE: ${ENV_SPECIFIC_FILE}"
-SERVICE_DIR="/Users/sdeshmukh/DEV/visionmax/syestem24/services/eazybank-service"
-DEPLOYMENT_BUILD_DIR="../docker/service-config/app/build"
-MYSQL_GENERATED_DIR="../docker/service-config/mysql/generated"
-INIT_TEMPLATE_FILE="../docker/service-config/mysql/init-template.sql"
-DOCKER_COMPOSE_DIR="../docker"
+SERVICE_DIR="../../../../services/eazybank-service"
+DEPLOYMENT_BUILD_DIR="../../docker/service-config/app/build"
+MYSQL_GENERATED_DIR="../../docker/service-config/mysql/generated"
+INIT_TEMPLATE_FILE="../../docker/service-config/mysql/init-template.sql"
+DOCKER_COMPOSE_DIR="../../docker"
 
 
 
