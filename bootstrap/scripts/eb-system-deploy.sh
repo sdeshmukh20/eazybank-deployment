@@ -85,11 +85,11 @@ envsubst < "$INIT_TEMPLATE_FILE" > "$MYSQL_GENERATED_DIR/init-${ENV_NAME}.sql" |
 # Run the `up` command in detached mode
 cd "$DOCKER_COMPOSE_DIR"
 log_info "Docker compose down if running:"
-docker compose -p "env_${ENV_NAME}" down --volumes || { log_error "Docker compose failed to down."; exit 1; }
+docker compose -p "${ENV_NAME}" down --volumes || { log_error "Docker compose failed to down."; exit 1; }
 log_info "Docker compose getting  up the services"
-docker compose -p "env_${ENV_NAME}" up --build -d || { log_error "Docker compose failed."; exit 1; }
+docker compose -p "${ENV_NAME}" up --build -d || { log_error "Docker compose failed."; exit 1; }
 
 log_info "Docker compose is running in detached mode. Showing container status:"
-docker compose -p "env_${ENV_NAME}" ps
+docker compose -p "${ENV_NAME}" ps
 
 log_info "Script execution completed. Containers are running in detached mode."
