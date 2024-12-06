@@ -9,3 +9,8 @@ docker/service-config/mysql/generated/*
 
 # Ignore all files inside the "build" folder
 docker/service-config/app/build/*
+
+
+# System files
+.DS_Store
+Thumbs.db
