@@ -28,8 +28,8 @@ chmod +x ./import_mysql_script.sh
 chmod +x ./keycloak-setup.sh
 chmod +x ./launch-web-client.sh
 
-#./eb-system-deploy.sh "${ENV_NAME}"
-#./import_mysql_script.sh "${ENV_NAME}"
-#./keycloak-setup.sh "${ENV_NAME}"
+./eb-system-deploy.sh "${ENV_NAME}"
+./import_mysql_script.sh "${ENV_NAME}"
+./keycloak-setup.sh "${ENV_NAME}"
 ./launch-web-client.sh "${ENV_NAME}"
 cd ../
