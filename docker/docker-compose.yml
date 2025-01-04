@@ -2,14 +2,14 @@ version: '3.7'
 
 services:
   mysqldb:
-    build:
-      context: .
-      dockerfile: service-config/mysql/Dockerfile
-      args:
-        EAZYBANK_ENV_NAME: ${EAZYBANK_ENV_NAME}
+#    build:
+#      context: .
+#      dockerfile: service-config/mysql/Dockerfile
+#      args:
+#        EAZYBANK_ENV_NAME: ${EAZYBANK_ENV_NAME}
     container_name: ${EAZYBANK_ENV_NAME}_mysql_db
     #image: mysql:8.0.33
-    #image: system24-mysql:8.0.33_v1.1
+    image: ebs-mysql-app-${EAZYBANK_ENV_NAME}:1.0
     ports:
       - "${PORT_MYSQL}:3306"
     environment:
