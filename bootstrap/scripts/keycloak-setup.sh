@@ -1,11 +1,46 @@
 #!/bin/bash
 
+# Function to print log messages with color
+log_info() {
+  echo "$1"
+}
 
+log_error() {
+  echo "$1"
+}
+log_info "Setting-up sample user-data in keycloak"
+# Check if the environment name is provided
+if [ -z "$1" ]; then
+  log_error "Environment name is required (e.g., local, dev, uat). Exiting."
+  exit 1
+fi
 
+ENV_NAME=$1;
 #configuration
 export KEYCLOAK_HOME=${KEYCLOAK_HOME:-/Users/sdeshmukh/DEV/install/keycloak-26.0.4}
 export PATH=$PATH:$KEYCLOAK_HOME/bin
 
+# variables
+DEFAULT_ENV_FILE="../../env/eb_default.env"
+ENV_SPECIFIC_FILE="../../env/eb_${ENV_NAME}.env"
+
+# Set up environment variables
+log_info "Setting up environment variables."
+if [ -f "$DEFAULT_ENV_FILE" ]; then
+  # shellcheck source=/dev/null
+  source "$DEFAULT_ENV_FILE"
+else
+  log_error "Default environment file not found: ${DEFAULT_ENV_FILE} from current-directory: $(pwd)"
+  exit 1
+fi
+
+if [ -f "$ENV_SPECIFIC_FILE" ]; then
+  # shellcheck source=/dev/null
+  source "$ENV_SPECIFIC_FILE"
+else
+  log_error "Environment-specific file not found: ${ENV_SPECIFIC_FILE} from current-directory: $(pwd)"
+  exit 1
+fi
 
 KCL_HOST="localhost"
 KCL_MNG_PORT="${PORT_KCL_MNG}"
