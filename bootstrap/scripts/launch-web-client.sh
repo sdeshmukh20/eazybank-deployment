@@ -18,4 +18,4 @@ ng serve --configuration="${ENV_NAME}" > ng-serve.log 2>&1 &
 NG_SERVE_PID=$!
 
 echo "ng serve is running in the background with PID: $NG_SERVE_PID"
-echo "Logs are being written to ng-serve.log"
+echo "Logs are being written to $(pwd)/ng-serve.log"

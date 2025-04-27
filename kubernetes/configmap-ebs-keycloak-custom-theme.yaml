@@ -1,0 +1,8 @@
+apiVersion: v1
+data:
+  404.html: |
+    <h1>Custom 404 - Page Not Found</h1>
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: ebs-keycloak-custom-theme-config-map

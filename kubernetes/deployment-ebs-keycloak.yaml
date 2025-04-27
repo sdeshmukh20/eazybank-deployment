@@ -1,0 +1,115 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ebs-keycloak-sv
+spec:
+  type: NodePort
+  selector:
+    app: ebs-keycloak-sel
+  ports:
+    - name: ops-port
+      port: 5002
+      protocol: TCP
+      targetPort: 8181
+    - name: mng-port
+      port: 9000
+      protocol: TCP
+      targetPort: 9000
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ebs-keycloak-app
+spec:
+  serviceName: ebs-keycloak-sv
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ebs-keycloak-sel
+  template:
+    metadata:
+      labels:
+        app: ebs-keycloak-sel
+    spec:
+      initContainers:
+        - name: wait-for-mysql
+          image: alpine:3.18
+          command: [ 'sh', '-c',
+            'until nc -z ebs-mysql-sv 3306; do 
+              echo "Waiting for MySQL..."; 
+              sleep 2; 
+            done' ]
+      containers:
+        - name: ebs-keycloak-cnt
+          image: quay.io/keycloak/keycloak:26.0.5
+          imagePullPolicy: IfNotPresent
+          args: ["start-dev", "--import-realm", "--spi-theme-static-max-age=-1", "--spi-theme-cache-themes=false", "--spi-theme-cache-templates=false"]
+          ports:
+            - containerPort: 8181
+              name: ops-port
+            - containerPort: 9000
+              name: manage-port
+          volumeMounts:
+            - name: ebs-keycloak-realm-vol
+              mountPath: /opt/keycloak/data/import/eazybankdev.json
+              subPath: eazybankdev.json
+            - name: ebs-keycloak-custom-theme-volume
+              mountPath: /opt/keycloak/themes/custom-theme/errors/404.html
+              subPath: 404.html  # Ensures only the file is mounted
+          readinessProbe:
+            initialDelaySeconds: 70
+            periodSeconds: 5
+            httpGet:
+              path: /health/ready
+              port: 9000
+          livenessProbe:
+            initialDelaySeconds: 60
+            periodSeconds: 5
+            httpGet:
+              path: /health/ready
+              port: 9000
+          env:
+            - name: DB_VENDOR
+              value: "mysql"
+            - name: DB_ADDR
+              value: "mysql"
+            - name: DB_DATABASE
+              value: "keycloak_uat"
+            - name: DB_USER
+              value: "root"
+            - name: DB_PASSWORD
+              value: "root"
+            - name: KC_DB
+              value: "mysql"
+            - name: KC_DB_USERNAME
+              value: "root"
+            - name: KC_DB_PASSWORD
+              value: "root"
+            - name: KC_DB_URL_DATABASE
+              value: "keycloak_uat"
+            - name: KC_DB_URL_HOST
+              value: "ebs-mysql-sv"
+            - name: KC_DB_URL_PORT
+              value: "3306"
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              value: "adminuat"
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              value: "adminuat"
+            - name: KC_HTTP_PORT
+              value: "8181"
+            - name: KC_HTTP_MANAGEMENT_PORT
+              value: "9000"
+            - name: KC_HEALTH_ENABLED
+              value: "true"
+            - name: KC_METRICS_ENABLED
+              value: "true"
+            - name: KEYCLOAK_DEFAULT_THEME
+              value: "custom-theme"
+      volumes:
+        - name: ebs-keycloak-realm-vol
+          configMap:
+            name: keycloak-realm-config
+        - name: ebs-keycloak-custom-theme-volume
+          configMap:
+            name: ebs-keycloak-custom-theme-config-map
+

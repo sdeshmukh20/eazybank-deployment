@@ -1,0 +1,86 @@
+actions:
+  build:
+    description: "Build an EB service"
+    required_args:
+      - "env"
+      - "svc"
+    script: "./build-eb-service.sh"
+    args_mapping:
+      - "$env"
+      - "$svc"
+
+  generate-mysql-script:
+    description: "Generate MySQL scripts"
+    required_args:
+      - "env"
+    script: "./generate-mysql-script.sh"
+    args_mapping:
+      - "$env"
+
+  # For service-specific scripts, use a mapping under a single `script` key
+  build-image:
+    description: "Build a Docker image"
+    required_args:
+      - "env"
+      - "svc"
+      - "version"
+    script: "./build-image.sh"
+    args_mapping:
+      - "$env"
+      - "$svc"
+      - "$version"
+
+  load-minikube-image:
+    description: "Load an image into Minikube"
+    required_args:
+      - "env"
+      - "svc"
+      - "version"
+    script: "./minikube-manage-images.sh"
+    args_mapping:
+      - "$env"
+      - "$svc"
+      - "$version"
+
+  deploy:
+    description: "Deploy the EB system"
+    required_args: []
+    script: "./deploy-eb-system.sh"
+    args_mapping: []
+
+  undeploy:
+    description: "Un Deploy the EB system"
+    required_args: []
+    script: "./undeploy-eb-system.sh"
+    args_mapping: []
+
+  keycloak-setup:
+    description: "Set up Keycloak"
+    required_args:
+      - "env"
+    script: "./keycloak-setup.sh"
+    args_mapping:
+      - "$env"
+
+  import-init-sql-data:
+    description: "Import SQL data"
+    required_args:
+      - "env"
+    script: "./import_mysql_script.sh"
+    args_mapping:
+      - "$env"
+
+  display-port-fw-cmds:
+    description: "Display port forward commands"
+    required_args:
+      - "env"
+    script: "./display-port-forward-command.sh"
+    args_mapping:
+      - "$env"
+  launch-web-client:
+    description: "Launch the web client"
+    required_args:
+      - "env"
+    script: "./launch-web-client.sh"
+    args_mapping:
+      - "$env"

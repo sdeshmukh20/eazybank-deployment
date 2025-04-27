@@ -1,0 +1,4 @@
+kubectl port-forward svc/ebs-keycloak-sv ${PORT_KCL_OPS}:5002
+kubectl port-forward svc/ebs-keycloak-sv ${PORT_KCL_MNG}:9000
+kubectl port-forward svc/ebs-user-account-sv ${PORT_APP}:7002
+kubectl port-forward svc/ebs-mysql-sv ${PORT_MYSQL}:3306

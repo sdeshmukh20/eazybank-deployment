@@ -1,0 +1,109 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ebs-mysql-sv
+spec:
+  type: NodePort
+  selector:
+    app: ebs-mysql-sel
+  ports:
+    - port: 3306
+      protocol: TCP
+      targetPort: 3306
+  #clusterIP: None # Needed for StatefulSet headless service
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ebs-mysql-app
+spec:
+  serviceName: ebs-mysql-sv
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ebs-mysql-sel
+  template:
+    metadata:
+      labels:
+        app: ebs-mysql-sel
+    spec:
+      containers:
+        - name: ebs-mysql-cnt
+          image: localhost/ebs-mysql-app-uat:1.2
+          imagePullPolicy: Never
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          env:
+            - name: MYSQL_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: ebs-mysql-config
+                  key: MYSQL_APP_DB_NAME
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  key: MYSQL_ROOT_PSW
+                  name: ebs-mysql-config
+          ports:
+            - containerPort: 3306
+          livenessProbe:
+            exec:
+              command:
+                - mysqladmin
+                - ping
+                - -h
+                - 127.0.0.1
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - mysqladmin
+                - ping
+                - -h
+                - 127.0.0.1
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+            #Below config works with docker, but not here in k8s
+            #docker config: command: --default-authentication-plugin=mysql_native_password --bind-address=0.0.0.0
+            #k8s config >>
+            #command: ["mysqld"]
+            #args:
+            # - "--default-authentication-plugin=mysql_native_password"
+            # - "--bind-address=0.0.0.0"
+          volumeMounts:
+            - name: ebs-mysql-storage
+              mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+    - metadata:
+        name: ebs-mysql-storage
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mysql-client
+spec:
+  containers:
+    - name: mysql-client
+      image: mysql:8.0.41
+      imagePullPolicy: IfNotPresent
+      command: ["tail", "-f", "/dev/null"]
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ebs-mysql-config
+data:
+  MYSQL_APP_DB_NAME: 'eazybank_uat'
+  MYSQL_ROOT_PSW: 'root'
+  #PORT_MYSQL: '3002'
